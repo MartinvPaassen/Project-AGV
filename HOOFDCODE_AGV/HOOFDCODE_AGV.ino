@@ -81,6 +81,7 @@ void setup() {
   display.print(10); //Write the variable to be displayed
   display.display();
   attachInterrupt(noodstop, noodstopmode, LOW);
+  digitalWrite(groenled, HIGH);
 }
 
 void loop() {
