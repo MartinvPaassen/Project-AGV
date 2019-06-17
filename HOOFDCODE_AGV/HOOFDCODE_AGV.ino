@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "Adafruit_VL53L0X.h"
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_MOSI   9//9
@@ -82,6 +83,10 @@ void setup() {
   display.display();
   attachInterrupt(noodstop, noodstopmode, LOW);
   digitalWrite(groenled, HIGH);
+  TCCR0A = 0;
+  TCCR0B = TCCR0B | (1 << CS01) | (1 << CS00);
+  TIMSK0 = (1 << TOIE0);
+sei();
 }
 
 void loop() {
@@ -115,4 +120,7 @@ void noodstopmode() {
   while (1) {
 
   }
+}
+ISR(TIMER0_OVF_vect){
+    i++;
 }
