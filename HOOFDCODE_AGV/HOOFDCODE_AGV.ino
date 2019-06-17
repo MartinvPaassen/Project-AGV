@@ -2,7 +2,6 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#include "Adafruit_VL53L0X.h"
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 #define OLED_MOSI   9//9
@@ -82,11 +81,6 @@ void setup() {
   display.print(10); //Write the variable to be displayed
   display.display();
   attachInterrupt(noodstop, noodstopmode, LOW);
-  digitalWrite(groenled, HIGH);
-  TCCR0A = 0;
-  TCCR0B = TCCR0B | (1 << CS01) | (1 << CS00);
-  TIMSK0 = (1 << TOIE0);
-sei();
 }
 
 void loop() {
@@ -95,7 +89,27 @@ void loop() {
     case 0: //initialiseren
 
     case 1: //autonome mode
+      digitalWrite(motorrechtsdirection, HIGH);
+      digitalWrite(motorlinksdirection, HIGH);
+      for (int x = 0; x < 200; x++) {
+        digitalWrite(motorrechtsstep, HIGH);
+        digitalWrite( motorlinksstep, HIGH);
+        delayMicroseconds(1000);
+        digitalWrite(motorrechtsstep, LOW);
+        digitalWrite(motorlinksstep, LOW);
+        delayMicroseconds(1000);
+      }
 
+      digitalWrite(motorrechtsdirection, HIGH);
+      digitalWrite(motorlinksdirection, LOW);
+      for (int x = 0; x < 98; x++) {
+        digitalWrite(motorrechtsstep, HIGH);
+        digitalWrite( motorlinksstep, HIGH);
+        delayMicroseconds(1000);
+        digitalWrite(motorrechtsstep, LOW);
+        digitalWrite(motorlinksstep, LOW);
+        delayMicroseconds(1000);
+      }
     case 2: //volgmode
 
     case 3: //sturen
@@ -120,7 +134,4 @@ void noodstopmode() {
   while (1) {
 
   }
-}
-ISR(TIMER0_OVF_vect){
-    i++;
 }
