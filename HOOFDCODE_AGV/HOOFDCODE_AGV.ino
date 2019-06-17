@@ -84,6 +84,7 @@ void setup() {
 }
 
 void loop() {
+  i = 1;
   // put your main code here, to run repeatedly:
   switch (i) {
     case 0: //initialiseren
