@@ -119,7 +119,7 @@ void loop() {
     case 0: //initialiseren
 
     case 1: //autonome mode
-      rechtdoor();
+      rechtdoor(1);
       voortgang = 1;
       break;
     case 2: //volgmode
@@ -155,8 +155,14 @@ void reset() {
 }
 
 void bomen() {
+  int current;
+  int timing;
+  timing = micros();
+  current = timing;
   digitalWrite(trigPinboom, HIGH);
-  //tijd
+  while (timing - current == 10) {
+    timing = micros();
+  }
   digitalWrite(trigPinboom, LOW);
   durationboom = pulseIn(echoPinboom, HIGH);
   distanceboom = durationboom * 0.017;
@@ -165,9 +171,11 @@ void bomen() {
 }
 
 void dingen() {
-  digitalWrite();
-  digitalWrite();
-  digitalWrite();
+  digitalWrite(trigPinhek, HIGH);
+  //tijd
+  digitalWrite(trigPinhek, LOW);
+  durationhek = pulseIn(echoPinhek);
+  distancehek = durationhek * 0.017;
   digitalWrite(echoPinhek, LOW);
 }
 void volgen() {
