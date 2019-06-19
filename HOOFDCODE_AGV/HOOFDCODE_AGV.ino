@@ -1,3 +1,4 @@
+//hoi dit is een test
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
