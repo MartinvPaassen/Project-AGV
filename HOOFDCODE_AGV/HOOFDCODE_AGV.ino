@@ -18,6 +18,10 @@
 #define echoPinright 40
 #define trigPinback 46
 #define echoPinback 48
+#define trigPinboom
+#define echoPinboom
+#define trigPinhek
+#define echoPinhek
 #define geelledlinks A10
 #define geelledrechts A11
 #define roodledvoor A8
@@ -35,7 +39,7 @@
 #define motorlinksdirection 4
 #define motorrechtsstep 5
 #define motorlinksstep 3
-#define buzzer 99
+#define buzzer 8
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT,
                          OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 long durationleft;
@@ -48,7 +52,7 @@ int distanceleft;
 int distancefront;
 int distanceright;
 int distanceback;
-int i = 0;
+int voortgang = 0;
 void noodstopmode();
 void setup() {
   // put your setup code here, to run once:
@@ -89,75 +93,142 @@ void setup() {
     display.display();
   */
   attachInterrupt(noodstop, noodstopmode, LOW);
+  voortgang = 0;
 }
 
 void loop() {
-  i = 1;
+
   // put your main code here, to run repeatedly:
-  switch (i) {
+  ultrasoonpersoon();
+  bomen();
+  if (digitalRead(tuimel) == LOW) {
+    voortgang = 2;
+  }
+
+  else if (distancefront <= 5 or distanceleft <= 5 or distanceback <= 5 or distanceright <= 5) {
+    voortgang = 4;
+  }
+  else if (1) {
+    //hallo
+  }
+  else {
+
+  }
+
+  switch (voortgang) {
     case 0: //initialiseren
 
     case 1: //autonome mode
-
+      rechtdoor();
+      voortgang = 1;
+      break;
     case 2: //volgmode
-
-    case 3: //sturen
-
+      volgen();
+      voortgang = 2;
+      break;
+    /* case 3: //sturen
+      if(){
+         sturen(1);
+      }
+      else{
+         sturen(0);
+         }
+         break;*/
     case 4: //stilstaan
-
+      stilstaan();
+      voortgang = 4;
+      break;
     case 5: //totale reset
       reset();
+      voortgang = 5;
+      break;
   }
 
 }
-trigPinleft 42
-#define echoPinleft 44
-#define trigPinfront 50
-#define echoPinfront 52
-#define trigPinright 38
-#define echoPinright 40
-#define trigPinback 46
-#define echoPinback 48
+void stilstaan() {
+  digitalWrite(roodledvoor, HIGH);
+  digitalWrite(roodledachter, HIGH);
+
+}
 void reset() {
 
 }
 
 void bomen() {
+  digitalWrite(trigPinboom, HIGH);
+  //tijd
+  digitalWrite(trigPinboom, LOW);
+  durationboom = pulseIn(echoPinboom, HIGH);
+  distanceboom = durationboom * 0.017;
+  digitalWrite(echoPinboom, LOW);
 
+}
+
+void dingen() {
+  digitalWrite();
+  digitalWrite();
+  digitalWrite();
+  digitalWrite(echoPinhek, LOW);
 }
 void volgen() {
 
 }
 
-long durationleft;
-long durationfront;
-long durationright;
-long durationback;
-unsigned long timing;
-unsigned long current;
-int distanceleft;
-int distancefront;
-int distanceright;
-int distanceback;
-
+/*long durationleft;
+  long durationfront;
+  long durationright;
+  long durationback;
+  unsigned long timing;
+  unsigned long current;
+  int distanceleft;
+  int distancefront;
+  int distanceright;
+  int distanceback;
+*/
 void ultrasoonpersoon() {
 
-  digitalWrite(echoPinleft, LOW);
+  int current;
+  int timing;
+  timing = micros();
+  current = timing;
   digitalWrite(trigPinleft, HIGH);
-  //tijd
-  digitalWrite(trigPin
-  duratonleft=pulseIn(echoPinleft,HIGH);
-  digitalWrite(trigPinfront);
-  digitalWrite(echoPinfront);
-
-  digitalWrite(trigPinright);
-  digitalWrite(echoPinright);
-
-  digitalWrite(trigPinback);
-  digitalWrite(echoPinback);
-
-  digitalWrite();
-  digitalWrite();
+  while (timing - current == 10) {
+    timing = micros();
+  }
+  digitalWrite(trigPinleft, LOW);
+  durationleft = pulseIn(echoPinleft, HIGH);
+  distanceleft = durationleft * 0.017;
+  digitalWrite(echoPinleft, LOW);
+  digitalWrite(trigPinfront, HIGH);
+  timing = micros();
+  current = timing;
+  while (timing - current == 10) {
+    timing = micros();
+  }
+  digitalWrite(trigPinfront, LOW);
+  durationfront = pulseIn(echoPinfront, HIGH);
+  distancefront = durationfront * 0.017;
+  digitalWrite(echoPinfront, LOW);
+  digitalWrite(trigPinright, HIGH);
+  timing = micros();
+  current = timing;
+  while (timing - current == 10) {
+    timing = micros();
+  }
+  digitalWrite(trigPinright, LOW);
+  durationright = pulseIn(echoPinright, HIGH);
+  distanceright = durationright * 0.017;
+  digitalWrite(echoPinright, LOW);
+  digitalWrite(trigPinback, HIGH);
+  timing = micros();
+  current = timing;
+  while (timing - current == 10) {
+    timing = micros();
+  }
+  digitalWrite(trigPinback, LOW);
+  durationback = pulseIn(echoPinback, HIGH);
+  distanceback = durationback * 0.017;
+  digitalWrite(echoPinback, LOW);
 }
 
 
@@ -311,4 +382,5 @@ void noodstopmode() {
       digitalWrite(buzzer, LOW);
     }
   }
+  voortgang = 0;
 }
