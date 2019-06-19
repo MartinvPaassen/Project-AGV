@@ -1,4 +1,3 @@
-//hoi dit is een test
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -19,10 +18,10 @@
 #define echoPinright 40
 #define trigPinback 46
 #define echoPinback 48
-#define trigPinboom
-#define echoPinboom
-#define trigPinhek
-#define echoPinhek
+#define trigPinboom 19
+#define echoPinboom 16
+#define trigPinhek 17
+#define echoPinhek 18
 #define geelledlinks A10
 #define geelledrechts A11
 #define roodledvoor A8
@@ -41,19 +40,30 @@
 #define motorrechtsstep 5
 #define motorlinksstep 3
 #define buzzer 8
+#define boomafstand 5
+#define minhek 13
+#define maxhek 14
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT,
                          OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
+
+unsigned long timing;
+unsigned long compensatie;
+unsigned long current;
 long durationleft;
 long durationfront;
 long durationright;
 long durationback;
-unsigned long timing;
-unsigned long current;
+long durationboom;
+long durationhek;
 int distanceleft;
 int distancefront;
 int distanceright;
 int distanceback;
+int aantalbomen = 0;
+int distanceboom;
+int distancehek;
 int voortgang = 0;
+int flag = 0;
 void noodstopmode();
 void setup() {
   // put your setup code here, to run once:
@@ -84,71 +94,101 @@ void setup() {
   pinMode(motorlinksdirection, OUTPUT);
   pinMode(motorlinksstep, OUTPUT);
   pinMode(buzzer, OUTPUT);
-  /* display.begin(SSD1306_SWITCHCAPVCC);
-    display.clearDisplay();
-    display.display();
-    display.setTextSize(3);  //Select the size of the text
-    display.setTextColor(WHITE);  //for monochrome display only whit is possible
-    display.setCursor(64, 30); //0,0 is the top left corner of the OLED screen
-    display.print(10); //Write the variable to be displayed
-    display.display();
-  */
+  display.begin(SSD1306_SWITCHCAPVCC);
+  display.clearDisplay();
+  display.display();
+  display.setTextSize(3);  //Select the size of the text
+  display.setTextColor(WHITE);  //for monochrome display only whit is possible
+  display.setCursor(64, 30); //0,0 is the top left corner of the OLED screen
+  display.print(aantalbomen); //Write the variable to be displayed
+  display.display();
   attachInterrupt(noodstop, noodstopmode, LOW);
   voortgang = 0;
 }
 
 void loop() {
-
-  // put your main code here, to run repeatedly:
+  /* Serial.println("case");
+    Serial.println(voortgang);
+    // put your main code here, to run repeatedly:
+    //ultrasoonpersoon();
+    Serial.println("case");
+  */ Serial.println("voortgang");
   ultrasoonpersoon();
-  bomen();
-  if (digitalRead(tuimel) == LOW) {
-    voortgang = 2;
-  }
-
-  else if (distancefront <= 5 or distanceleft <= 5 or distanceback <= 5 or distanceright <= 5) {
-    voortgang = 4;
-  }
-  else if (1) {
+  /* Serial.println("einde ");
+    bomen();
+    hek();
+    Serial.println("case");
+    Serial.println(voortgang);
+    Serial.println("distanceright");
+    Serial.println(distanceright);
+    Serial.println(distancefront);
+    Serial.println(distanceleft);
+    Serial.println(distanceback);
+    if (distancefront <= 5 or distanceleft <= 5 or distanceback <= 5 or distanceright <= 5) {
+     voortgang = 4;
+    }
+    else if (digitalRead(tuimel) == LOW) {
+     voortgang = 2;
+    }
+    //else if (1) {
     //hallo
-  }
-  else {
+    //}
+    else {
+     voortgang = 1;
+    }
 
-  }
+    switch (voortgang) {
+     case 0: //initialiseren
+       Serial.println("initialisatie done");
+       break;
+     case 1: //autonome mode
+       rechtdoor(1);
+       voortgang = 1;
+       if (distancehek <= minhek) {
+         bijsturen(0);
+       }
+       else if (distancehek >= maxhek) {
+         bijsturen(1);
+       }
+       break;
+     case 2: //volgmode
+       volgen();
+       voortgang = 2;
 
-  switch (voortgang) {
-    case 0: //initialiseren
-
-    case 1: //autonome mode
-      rechtdoor(1);
-      voortgang = 1;
-      break;
-    case 2: //volgmode
-      volgen();
-      voortgang = 2;
-      break;
-    /* case 3: //sturen
-      if(){
-         sturen(1);
-      }
-      else{
-         sturen(0);
-         }
-         break;*/
-    case 4: //stilstaan
-      stilstaan();
-      voortgang = 4;
-      break;
-    case 5: //totale reset
-      reset();
-      voortgang = 5;
-      break;
-  }
+       break;
+     /* case 3: //sturen
+       if(){
+          sturen(1);
+       }
+       else{
+          sturen(0);
+          }
+          break;
+     case 4: //stilstaan
+       stilstaan();
+       voortgang = 4;
+       break;
+     case 5: //totale reset
+       reset();
+       voortgang = 5;
+       break;
+    }*/
 
 }
 void stilstaan() {
   digitalWrite(roodledvoor, HIGH);
   digitalWrite(roodledachter, HIGH);
+  digitalWrite(motorrechtsstep, LOW);
+  digitalWrite(motorlinksstep, LOW);
+
+}
+void bijsturen(int i) {
+
+}
+void doorrijden() {
+  timing = micros();
+  current = timing;
+
 
 }
 void reset() {
@@ -156,28 +196,44 @@ void reset() {
 }
 
 void bomen() {
-  int current;
-  int timing;
+
+
   timing = micros();
   current = timing;
   digitalWrite(trigPinboom, HIGH);
-  while (timing - current == 10) {
+  while ((timing - current) == 10) {
     timing = micros();
   }
   digitalWrite(trigPinboom, LOW);
   durationboom = pulseIn(echoPinboom, HIGH);
   distanceboom = durationboom * 0.017;
-  digitalWrite(echoPinboom, LOW);
-
+  // digitalWrite(echoPinboom, LOW);
+  if (distanceboom <= boomafstand or flag == 1) {
+    flag = 1;
+    if (distanceboom > boomafstand) {
+      aantalbomen++;
+      flag = 0;
+      display.setTextSize(3);  //Select the size of the text
+      display.setTextColor(WHITE);  //for monochrome display only whit is possible
+      display.setCursor(64, 30); //0,0 is the top left corner of the OLED screen
+      display.print(aantalbomen); //Write the variable to be displayed
+      display.display();
+    }
+  }
 }
 
-void dingen() {
+void hek() {
+
+  timing = micros();
+  current = timing;
   digitalWrite(trigPinhek, HIGH);
-  //tijd
+  while (timing - current == 10) {
+    timing = micros();
+  }
   digitalWrite(trigPinhek, LOW);
-  durationhek = pulseIn(echoPinhek);
+  durationhek = pulseIn(echoPinhek, HIGH);
   distancehek = durationhek * 0.017;
-  digitalWrite(echoPinhek, LOW);
+  // digitalWrite(echoPinhek, LOW);
 }
 void volgen() {
 
@@ -196,48 +252,74 @@ void volgen() {
 */
 void ultrasoonpersoon() {
 
-  int current;
-  int timing;
+  //Serial.println("hall9o");
+  digitalWrite(trigPinleft, LOW);
   timing = micros();
   current = timing;
+  while (timing - current <= 2) {
+    timing = micros();
+  }
   digitalWrite(trigPinleft, HIGH);
-  while (timing - current == 10) {
+  timing = micros();
+  current = timing;
+  while (timing - current <= 10) {
     timing = micros();
   }
   digitalWrite(trigPinleft, LOW);
   durationleft = pulseIn(echoPinleft, HIGH);
+  Serial.println("hallo11");
   distanceleft = durationleft * 0.017;
-  digitalWrite(echoPinleft, LOW);
+  //  digitalWrite(echoPinleft, LOW);
+  Serial.println("ultralinks");
+  digitalWrite(trigPinfront, LOW);
+  timing = micros();
+  current = timing;
+  while (timing - current <= 2) {
+    timing = micros();
+  }
   digitalWrite(trigPinfront, HIGH);
   timing = micros();
   current = timing;
-  while (timing - current == 10) {
+  while (timing - current <= 10) {
     timing = micros();
   }
+  Serial.println("hallo");
   digitalWrite(trigPinfront, LOW);
   durationfront = pulseIn(echoPinfront, HIGH);
   distancefront = durationfront * 0.017;
-  digitalWrite(echoPinfront, LOW);
+  // digitalWrite(echoPinfront, LOW);
+  digitalWrite(trigPinright, LOW);
+  timing = micros();
+  current = timing;
+  while (timing - current <= 2) {
+    timing = micros();
+  }
   digitalWrite(trigPinright, HIGH);
   timing = micros();
   current = timing;
-  while (timing - current == 10) {
+  while (timing - current <= 10) {
     timing = micros();
   }
   digitalWrite(trigPinright, LOW);
   durationright = pulseIn(echoPinright, HIGH);
   distanceright = durationright * 0.017;
-  digitalWrite(echoPinright, LOW);
+  //digitalWrite(echoPinright, LOW);
+  digitalWrite(trigPinback, LOW);
+  timing = micros();
+  current = timing;
+  while (timing - current <= 2) {
+    timing = micros();
+  }
   digitalWrite(trigPinback, HIGH);
   timing = micros();
   current = timing;
-  while (timing - current == 10) {
+  while (timing - current <= 10) {
     timing = micros();
   }
   digitalWrite(trigPinback, LOW);
   durationback = pulseIn(echoPinback, HIGH);
   distanceback = durationback * 0.017;
-  digitalWrite(echoPinback, LOW);
+  // digitalWrite(echoPinback, LOW);
 }
 
 
@@ -245,7 +327,7 @@ void rechtdoor(int richting) {
   int i = 0;
   int a = 0;
   int b = 0;
-  int current;
+
   if (richting == 1) {
     digitalWrite(motorrechtsdirection, HIGH);
     digitalWrite(motorlinksdirection, LOW);
@@ -258,14 +340,9 @@ void rechtdoor(int richting) {
   current = timing;
   while (i != 1) {
     timing = micros();
-    // Serial.println("fase 1");
-    // Serial.println(timing);
-    // Serial.println(i);
     digitalWrite(motorrechtsstep, HIGH);
     digitalWrite(motorlinksstep, HIGH);
     if (timing - current >= 3000 and a == 0) {
-      //Serial.println("fase 2");
-      //Serial.println(timing);
       b = 1;
       a = 1;
       digitalWrite(motorrechtsstep, LOW);
@@ -289,7 +366,8 @@ void sturen(int kant) {
   int i = 0;
   int a = 0;
   int b = 0;
-  int current;
+
+
   timing = micros();
   current = timing;
   // Serial.println("fase 1");
@@ -298,10 +376,14 @@ void sturen(int kant) {
   if (kant == 1) {
     digitalWrite(motorrechtsdirection, HIGH);
     digitalWrite(motorlinksdirection, HIGH);
+    digitalWrite(geelledlinks, HIGH);
+    digitalWrite(geelledrechts, LOW);
   }
   else {
     digitalWrite(motorrechtsdirection, LOW);
     digitalWrite(motorlinksdirection, LOW);
+    digitalWrite(geelledrechts, HIGH);
+    digitalWrite(geelledlinks, LOW);
   }
   digitalWrite(motorrechtsstep, HIGH);
   digitalWrite(motorlinksstep, HIGH);
@@ -376,19 +458,37 @@ void iets() {
 
 
 void noodstopmode() {
-  int tel = 0;
+
+  timing = micros();
+  current = timing;
+  compensatie = timing;
   digitalWrite(motorrechtsstep, LOW);
   digitalWrite(motorlinksstep, LOW);
   digitalWrite(motorrechtsdirection, LOW);
   digitalWrite(motorlinksdirection, LOW);
+  digitalWrite(groenled, LOW);
+
   while (digitalRead(noodstop) == LOW) {
-    tel++;
-    if (tel == 500) {
+    timing = micros();
+    if (timing - current == 1000) {
       digitalWrite(buzzer, HIGH);
     }
-    if (tel == 1000) {
-      tel = 0;
+    if (timing - current == 2000) {
+      current = timing;
       digitalWrite(buzzer, LOW);
+    }
+    if (timing - compensatie == 500000) {
+      digitalWrite(roodledvoor, HIGH);
+      digitalWrite(roodledachter, HIGH);
+      digitalWrite(geelledlinks, HIGH);
+      digitalWrite(geelledrechts, HIGH);
+    }
+    if (timing - compensatie == 1000000) {
+      digitalWrite(roodledvoor, LOW);
+      digitalWrite(roodledachter, LOW);
+      digitalWrite(geelledlinks, LOW);
+      digitalWrite(geelledrechts, LOW);
+      compensatie = timing;
     }
   }
   voortgang = 0;
