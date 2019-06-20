@@ -153,6 +153,7 @@ void loop() {
   else {
     voortgang = 1;
   }
+  //allo
 
   switch (voortgang) {
     case 0: //initialiseren
